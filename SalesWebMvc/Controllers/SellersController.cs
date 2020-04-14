@@ -16,7 +16,7 @@ namespace SalesWebMvc.Controllers
         private readonly SellerService _sellerService;
         private readonly DepartmentService _departmentService;
 
-        public SellersController( SellerService sellerService, DepartmentService departmentService)
+        public SellersController(SellerService sellerService, DepartmentService departmentService)
         {
             _sellerService = sellerService;
             _departmentService = departmentService;
@@ -47,7 +47,7 @@ namespace SalesWebMvc.Controllers
             await _sellerService.InsertAsync(seller);
             return RedirectToAction(nameof(Index));
         }
-        public async Task<IActionResult> Delete (int? id)
+        public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
             {
@@ -56,7 +56,7 @@ namespace SalesWebMvc.Controllers
             else
             {
                 var obj = await _sellerService.FindByIdAsync(id.Value);
-                if(obj == null)
+                if (obj == null)
                 {
                     return RedirectToAction(nameof(Error), new { message = "Id not found on database!" });
                 }
@@ -70,10 +70,17 @@ namespace SalesWebMvc.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
-            await _sellerService.RemoveAsync(id);
-            return RedirectToAction(nameof(Index));
+            try
+            {
+                await _sellerService.RemoveAsync(id);
+                return RedirectToAction(nameof(Index));
+            }
+            catch(IntegrityException e)
+            {
+                return RedirectToAction(nameof(Error), new { message = e.Message });
+            }
         }
-        public async Task <IActionResult> Details (int? id)
+        public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
             {
@@ -94,7 +101,7 @@ namespace SalesWebMvc.Controllers
         }
         public async Task<IActionResult> Edit(int? id)
         {
-            if(id == null)
+            if (id == null)
             {
                 return RedirectToAction(nameof(Error), new { message = "Id not provided!" });
             }
@@ -112,7 +119,7 @@ namespace SalesWebMvc.Controllers
                     return View(viewModel);
                 }
             }
-            
+
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -135,11 +142,11 @@ namespace SalesWebMvc.Controllers
                     await _sellerService.UpdateAsync(seller);
                     return RedirectToAction(nameof(Index));
                 }
-                catch(NotFoundException e)
+                catch (NotFoundException e)
                 {
                     return RedirectToAction(nameof(Error), new { message = e.Message });
                 }
-                catch (DbConcurrencyException e )
+                catch (DbConcurrencyException e)
                 {
                     return RedirectToAction(nameof(Error), new { message = e.Message });
                 }
@@ -147,7 +154,8 @@ namespace SalesWebMvc.Controllers
         }
         public IActionResult Error(string message)
         {
-            var viewModel = new ErrorViewModel {
+            var viewModel = new ErrorViewModel
+            {
                 Message = message,
                 RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier
             };
